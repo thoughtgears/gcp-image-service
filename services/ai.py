@@ -30,15 +30,15 @@ class AIService:
         self._model_name = "gemini-1.5-flash-001"
 
     @staticmethod
-    def _get_embeddings(image_uri: str, description: str) -> tuple[list[float], list[float]]:
+    def _get_embeddings(image_uri: str, text: str, dimension: int = 512) -> tuple[list[float], list[float]]:
         try:
             model = MultiModalEmbeddingModel.from_pretrained("multimodalembedding")
             image = Image.load_from_file(image_uri)
 
             embeddings = model.get_embeddings(
-                contextual_text=description,
+                contextual_text=text,
                 image=image,
-                dimension=512,
+                dimension=dimension,
             )
 
             return embeddings.text_embedding, embeddings.image_embedding
@@ -105,7 +105,7 @@ class AIService:
 
         return [ColorWeight(**item) for item in data]
 
-    def image_properties(self, image_path: str) -> ImageProperties:
+    def image_properties(self, image_path: str, dimension: int = 512) -> ImageProperties:
         client = vision.ImageAnnotatorClient()
         image = vision.Image()
         image.source.image_uri = image_path
@@ -139,7 +139,9 @@ class AIService:
 
         description = self._get_image_description(image_path, labels)
 
-        text_embedding, image_embedding = self._get_embeddings(image_path, description)
+        text = description + " " + ", ".join(labels)
+
+        text_embedding, image_embedding = self._get_embeddings(image_path, text, dimension)
 
         image_props = ImageProperties(
             labels=[label.description for label in labels],

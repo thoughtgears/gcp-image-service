@@ -7,3 +7,7 @@ ui
 .env
 Dockerfile
 Taskfile.yml
+resources
+rehydrate-1.py
+rehydrate-2.py
+get-companies.py

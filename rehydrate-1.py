@@ -30,7 +30,7 @@ if __name__ == "__main__":
         image_path = f"gs://{doc.bucket}/{doc.imagePath}"
 
         try:
-            props = ai.image_properties(image_path)
+            props = ai.image_properties(image_path, 1408)
 
             doc.imageDescription = props.description
             doc.metadata.labels = props.labels
@@ -45,19 +45,8 @@ if __name__ == "__main__":
             doc.image_embedding_field = Vector(props.image_embedding)
 
             # Update the document in Firestore
-            db._client.collection("vector-image-data").document(doc.imageId).set(doc.dict(exclude={'id'}), merge=True)
+            db._client.collection("vector-image-data").document(doc.imageId).set(doc.model_dump(), merge=True)
             print(f"Updated document {doc.imageId}")
         except Exception as e:
             print(f"An error occurred while processing document {doc.imageId}: {e}")
             continue  # Skip to the next document if an error occurs
-
-        props = ai.image_properties(image_path)
-
-        doc.imageDescription = props.description
-        doc.metadata.labels = props.labels
-        doc.metadata.color_weights = props.colors
-        doc.text_embedding_field = Vector(props.text_embedding)
-        doc.image_embedding_field = Vector(props.image_embedding)
-
-        db._client.collection("vector-image-data").document(doc.imageId).set(doc.model_dump(), merge=True)
-        print(f"Updated document {doc.imageId}")
