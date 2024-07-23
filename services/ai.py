@@ -31,18 +31,20 @@ class AIService:
 
     @staticmethod
     def _get_embeddings(image_uri: str, description: str) -> tuple[list[float], list[float]]:
-        model = MultiModalEmbeddingModel.from_pretrained("multimodalembedding")
-        image = Image.load_from_file(
-            image_uri,
-        )
+        try:
+            model = MultiModalEmbeddingModel.from_pretrained("multimodalembedding")
+            image = Image.load_from_file(image_uri)
 
-        embeddings = model.get_embeddings(
-            contextual_text=description,
-            image=image,
-            dimension=512,
-        )
+            embeddings = model.get_embeddings(
+                contextual_text=description,
+                image=image,
+                dimension=512,
+            )
 
-        return embeddings.text_embedding, embeddings.image_embedding
+            return embeddings.text_embedding, embeddings.image_embedding
+        except Exception as e:
+            print(f"An error occurred while getting embeddings: {e}")
+            return [], []
 
     def _get_image_description(self, image_path: str, labels: list[str], emphasis: str = None) -> str:
         model = GenerativeModel(

@@ -1,0 +1,9 @@
+.gitignore
+.git
+.github
+.venv
+ui
+.dockerignore
+.env
+Dockerfile
+Taskfile.yml

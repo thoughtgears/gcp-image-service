@@ -3,6 +3,7 @@ from google.cloud.firestore_v1.vector import Vector
 from pydantic import BaseModel
 from typing import Optional
 from datetime import datetime
+import hashlib
 
 
 class ColorWeight(BaseModel):
@@ -45,6 +46,14 @@ class DBService:
         if not self._collection:
             raise ValueError("Collection name must be set")
 
+    @staticmethod
+    def encode_image_id(image_path: str) -> str:
+        # Generate MD5 hash
+        hash_object = hashlib.md5(image_path.encode())
+        # Convert hash to hexadecimal string
+        hex_dig = hash_object.hexdigest()
+        return hex_dig
+
     def get_documents(self, limit: int = 1000) -> list[ImageDocument]:
         docs = []
         query = self._client.collection(self._collection).limit(limit)
@@ -60,13 +69,26 @@ class DBService:
         return ImageDocument(**doc.to_dict())
 
     def add_document(self, data: ImageDocument):
-        doc_ref = self._client.collection(self._collection).document()
-        doc_ref.set(data, merge=True)
+        image_id = self.encode_image_id(data.imagePath)
+        doc_ref = self._client.collection(self._collection).document(image_id)
+        try:
+            doc_ref.set(
+                document_data=data.model_dump(),
+                merge=True,
+            )
+        except Exception as e:
+            print(f"Error inserting document {data.imageId}: {e}")
         return
 
     def update_document(self, data: ImageDocument):
         doc_ref = self._client.collection(self._collection).document(data.imageId)
-        doc_ref.set(data, merge=True)
+        try:
+            doc_ref.set(
+                document_data=data.model_dump(),
+                merge=True,
+            )
+        except Exception as e:
+            print(f"Error inserting document {data.imageId}: {e}")
         return
 
     def delete_document(self, document_id: str):
