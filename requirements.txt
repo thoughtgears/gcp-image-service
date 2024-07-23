@@ -1,0 +1,7 @@
+FastAPI==0.*
+uvicorn==0.*
+pydantic==2.*
+google-cloud-firestore==2.*
+google-cloud-vision==3.*
+google-cloud-aiplatform==1.*
+python-dotenv==1.*
