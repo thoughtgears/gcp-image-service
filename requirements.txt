@@ -9,3 +9,4 @@ python-dotenv==1.*
 scipy==1.*
 webcolors==24.*
 Pillow==10.*
+appengine-python-standard==1.*

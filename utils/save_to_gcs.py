@@ -11,4 +11,4 @@ async def save_to_gcs(file: UploadFile, name: str) -> str:
     content = await file.read()
     blob.upload_from_string(content, content_type=file.content_type)
 
-    return f"gs://{settings.bucket}/{name}"
+    return f"{settings.bucket}/{name}"
