@@ -1,4 +1,4 @@
-from fastapi import APIRouter, Request, Response
+from fastapi import APIRouter, Request, Response, UploadFile, File
 from services.database import DBService, ImageDocument, Metadata
 from services.ai import AIService
 from config import settings
@@ -22,16 +22,18 @@ async def get_image(image_id: str):
 
 
 @router.post("")
-async def process_images(req: Request) -> Response:
-    body = await req.json()
-    image_path = f"gs://{body['bucket']}/{body['image_path']}"
+async def process_images(file: UploadFile = File(...), image_name: str = None) -> Response:
+    if image_name is None:
+        image_name = file.filename
+
+    image_path = await utils.save_to_gcs(file, image_name)
     props = ai.image_properties(image_path)
-    height, width = utils.get_image_dimensions(body['bucket'], body['image_path'])
+    height, width = utils.get_image_dimensions(file)
     doc = ImageDocument(
-        imageId=db.encode_image_id(body['image_path']),
-        imagePath=body['image_path'],
-        bucket=body['bucket'],
-        imageName=body['image_path'].split("/")[-1],
+        imageId=db.encode_image_id(image_name),
+        imagePath=image_path,
+        bucket=settings.bucket,
+        imageName=image_path.split("/")[-1],
         imageDescription=props.description,
         published=False,
         valid=props.valid,
@@ -46,17 +48,15 @@ async def process_images(req: Request) -> Response:
             width=width,
             labels=props.labels,
             color_weights=props.colors,
-            albumId=body['album_id'],
-            companyId=body['company_id']
         )
     )
 
-    return {
-        "labels": props.labels,
-        "colors": props.colors,
-        "safe": props.safe_search,
-        "description": props.description
-    }
+    try:
+        db.add_document(doc)
+    except Exception as e:
+        return Response(status_code=500, content=f"An error occurred: {e}")
+
+    return Response(status_code=201)
 
 
 @router.delete("/{image_id}")

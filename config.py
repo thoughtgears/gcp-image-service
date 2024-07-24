@@ -9,6 +9,7 @@ class Settings(BaseModel):
     project_id: str = os.getenv('GCP_PROJECT_ID')
     region: str = os.getenv('GCP_REGION')
     firestore_collection: str = os.getenv('FIRESTORE_COLLECTION', 'image-data')
+    bucket: str = os.getenv('BUCKET_NAME', 'image-data')
 
 
 settings = Settings()
