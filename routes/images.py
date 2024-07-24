@@ -1,4 +1,4 @@
-from fastapi import APIRouter, Request, Response, UploadFile, File
+from fastapi import APIRouter, Response, UploadFile, File, HTTPException
 from services.database import DBService, ImageDocument, Metadata
 from services.ai import AIService
 from services.images import ImageService
@@ -10,21 +10,36 @@ import datetime
 router = APIRouter()
 db = DBService(settings.project_id, settings.firestore_collection)
 ai = AIService(settings.project_id, settings.region)
-image = ImageService(settings.bucket)
+image = ImageService()
 
 
-@router.get("")
+@router.get("", response_model=list[ImageDocument], summary="Retrieve all images", description="Get a list of all images stored in the database.")
 async def get_images():
+    """
+    Retrieve all images.
+    """
     return db.get_documents()
 
 
-@router.get("/{image_id}")
+@router.get("/{image_id}", response_model=ImageDocument, summary="Retrieve a single image by ID", description="Get details of an image using its ID.")
 async def get_image(image_id: str):
-    return db.get_document_by_id(image_id)
+    """
+    Retrieve a single image by ID.
+    - **image_id**: The ID of the image to retrieve.
+    """
+    doc = db.get_document_by_id(image_id)
+    if not doc:
+        raise HTTPException(status_code=404, detail="Image not found")
+    return doc
 
 
-@router.post("")
+@router.post("", status_code=201, summary="Process and store an image", description="Upload, process, and store an image.")
 async def process_images(file: UploadFile = File(...), image_name: str = None) -> Response:
+    """
+    Process and store an image.
+    - **file**: The image file to upload.
+    - **image_name**: The name of the image. If not provided, the filename of the uploaded file will be used.
+    """
     if image_name is None:
         image_name = file.filename
 
@@ -64,8 +79,15 @@ async def process_images(file: UploadFile = File(...), image_name: str = None) -
     return Response(status_code=201)
 
 
-@router.delete("/{image_id}")
+@router.delete("/{image_id}", status_code=204, summary="Delete an image by ID", description="Delete an image and its associated data using its ID.")
 async def delete_image(image_id: str):
+    """
+    Delete an image by ID.
+    - **image_id**: The ID of the image to delete.
+    """
     doc = db.get_document_by_id(image_id)
+    if not doc:
+        raise HTTPException(status_code=404, detail="Image not found")
     image.delete_serving_url(doc.imagePath)
-    return db.delete_document(image_id)
+    db.delete_document(image_id)
+    return Response(status_code=204)
