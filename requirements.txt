@@ -4,6 +4,8 @@ pydantic==2.*
 google-cloud-firestore==2.*
 google-cloud-vision==3.*
 google-cloud-aiplatform==1.*
+google-cloud-storage==2.*
 python-dotenv==1.*
 scipy==1.*
 webcolors==24.*
+Pillow==10.*

@@ -17,6 +17,8 @@ class Metadata(BaseModel):
     width: int
     labels: Optional[list[str]] = None
     color_weights: Optional[list[ColorWeight]] = None
+    companyId: Optional[str] = None
+    albumId: Optional[str] = None
 
 
 class ImageDocument(BaseModel):
@@ -31,8 +33,6 @@ class ImageDocument(BaseModel):
     valid: Optional[bool] = False
     timeCreated: datetime
     timeUpdated: datetime
-    companyId: Optional[str] = None
-    albumId: Optional[str] = None
     text_embedding_field: Optional[Vector] = None
     image_embedding_field: Optional[Vector] = None
     text_embedding_field_1480: Optional[Vector] = None

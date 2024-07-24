@@ -8,6 +8,6 @@ ui
 Dockerfile
 Taskfile.yml
 resources
-rehydrate-1.py
-rehydrate-2.py
-get-companies.py
+local-rehydrate-1.py
+local-rehydrate-2.py
+local-get-companies.py

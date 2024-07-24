@@ -22,6 +22,9 @@ class ImageProperties(BaseModel):
     description: str = None
     text_embedding: list[float] = None
     image_embedding: list[float] = None
+    text_embedding_1480: list[float] = None
+    image_embedding_1480: list[float] = None
+    valid: bool = True
 
 
 class AIService:
@@ -137,11 +140,20 @@ class AIService:
             "VERY_LIKELY",
         )
 
+        is_valid = not any(
+            likelihood_name[safe.adult] == "VERY_LIKELY" or
+            likelihood_name[safe.spoof] == "VERY_LIKELY" or
+            likelihood_name[safe.medical] == "VERY_LIKELY" or
+            likelihood_name[safe.violence] == "VERY_LIKELY" or
+            likelihood_name[safe.racy] == "VERY_LIKELY"
+        )
+
         description = self._get_image_description(image_path, labels)
 
         text = description + " " + ", ".join(labels)
 
         text_embedding, image_embedding = self._get_embeddings(image_path, text, dimension)
+        text_embedding_1480, image_embedding_1480 = self._get_embeddings(image_path, text, 1480)
 
         image_props = ImageProperties(
             labels=[label.description for label in labels],
@@ -149,6 +161,8 @@ class AIService:
             description=description,
             text_embedding=text_embedding,
             image_embedding=image_embedding,
+            text_embedding_1480=text_embedding_1480,
+            image_embedding_1480=image_embedding_1480,
             safe_search=SafeSearch(
                 adult=likelihood_name[safe.adult],
                 spoof=likelihood_name[safe.spoof],
@@ -156,6 +170,7 @@ class AIService:
                 violence=likelihood_name[safe.violence],
                 racy=likelihood_name[safe.racy],
             ),
+            valid=is_valid,
         )
 
         return image_props
