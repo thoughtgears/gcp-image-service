@@ -48,6 +48,20 @@ async def process_images(file: UploadFile = File(...), image_name: str = None) -
     props = ai.image_properties(prefix_image_path)
     height, width = utils.get_image_dimensions(file)
     serving_url = image.get_serving_url(image_path)
+    text_embeddings_512 = ai.get_embeddings(prefix_image_path, props.description, 512)
+    image_embeddings_512 = ai.get_embeddings(prefix_image_path, props.description, 512)
+    text_embeddings_1408 = ai.get_embeddings(prefix_image_path, props.description, 1408)
+    image_embeddings_1408 = ai.get_embeddings(prefix_image_path, props.description, 1408)
+
+    very_likely = "VERY_LIKELY"
+    safe_search_flags = [
+        props.safe_search.adult,
+        props.safe_search.spoof,
+        props.safe_search.medical,
+        props.safe_search.violence,
+        props.safe_search.racy
+    ]
+
     doc = ImageDocument(
         imageId=db.encode_image_id(image_name),
         imagePath=image_path,
@@ -56,13 +70,13 @@ async def process_images(file: UploadFile = File(...), image_name: str = None) -
         imageDescription=props.description,
         imageUrl=serving_url,
         published=False,
-        valid=props.valid,
         timeCreated=datetime.datetime.now(datetime.UTC),
         timeUpdated=datetime.datetime.now(datetime.UTC),
-        text_embedding_field=Vector(props.text_embedding),
-        image_embedding_field=Vector(props.image_embedding),
-        text_embedding_field_1480=Vector(props.text_embedding_1480),
-        image_embedding_field_1480=Vector(props.image_embedding_1480),
+        text_embedding_field=Vector(text_embeddings_512),
+        image_embedding_field=Vector(image_embeddings_512),
+        text_embedding_field_1480=Vector(text_embeddings_1408),
+        image_embedding_field_1480=Vector(image_embeddings_1408),
+        valid=all(flag != very_likely for flag in safe_search_flags),
         metadata=Metadata(
             height=height,
             width=width,
