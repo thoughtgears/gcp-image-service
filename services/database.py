@@ -58,9 +58,17 @@ class DBService:
         hex_dig = hash_object.hexdigest()
         return hex_dig
 
-    def get_documents(self, limit: int = 1000) -> list[ImageDocument]:
+    def get_documents(self, limit: int = 1000, start_at: str = None) -> list[ImageDocument]:
         docs = []
         query = self._client.collection(self._collection).limit(limit)
+
+        if start_at:
+            last_doc_ref = self._client.collection(self._collection).document(start_at)
+            last_doc = last_doc_ref.get()
+            if last_doc.exists:
+                query = query.start_after(last_doc)
+            else:
+                print(f"Document with ID {start_at} does not exist.")
 
         for doc in query.stream():
             docs.append(ImageDocument(**doc.to_dict()))
