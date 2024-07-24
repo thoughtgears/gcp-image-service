@@ -20,11 +20,6 @@ class ImageProperties(BaseModel):
     colors: list[ColorWeight]
     safe_search: SafeSearch
     description: str = None
-    text_embedding: list[float] = None
-    image_embedding: list[float] = None
-    text_embedding_1480: list[float] = None
-    image_embedding_1480: list[float] = None
-    valid: bool = True
 
 
 class AIService:
@@ -33,7 +28,7 @@ class AIService:
         self._model_name = "gemini-1.5-flash-001"
 
     @staticmethod
-    def _get_embeddings(image_uri: str, text: str, dimension: int = 512) -> tuple[list[float], list[float]]:
+    def get_embeddings(image_uri: str, text: str, dimension: int = 512) -> tuple[list[float], list[float]]:
         try:
             model = MultiModalEmbeddingModel.from_pretrained("multimodalembedding")
             image = Image.load_from_file(image_uri)
@@ -108,7 +103,7 @@ class AIService:
 
         return [ColorWeight(**item) for item in data]
 
-    def image_properties(self, image_path: str, dimension: int = 512) -> ImageProperties:
+    def image_properties(self, image_path: str) -> ImageProperties:
         client = vision.ImageAnnotatorClient()
         image = vision.Image()
         image.source.image_uri = image_path
@@ -140,29 +135,12 @@ class AIService:
             "VERY_LIKELY",
         )
 
-        is_valid = not any(
-            likelihood_name[safe.adult] == "VERY_LIKELY" or
-            likelihood_name[safe.spoof] == "VERY_LIKELY" or
-            likelihood_name[safe.medical] == "VERY_LIKELY" or
-            likelihood_name[safe.violence] == "VERY_LIKELY" or
-            likelihood_name[safe.racy] == "VERY_LIKELY"
-        )
-
         description = self._get_image_description(image_path, labels)
-
-        text = description + " " + ", ".join(labels)
-
-        text_embedding, image_embedding = self._get_embeddings(image_path, text, dimension)
-        text_embedding_1480, image_embedding_1480 = self._get_embeddings(image_path, text, 1480)
 
         image_props = ImageProperties(
             labels=[label.description for label in labels],
             colors=colors_list,
             description=description,
-            text_embedding=text_embedding,
-            image_embedding=image_embedding,
-            text_embedding_1480=text_embedding_1480,
-            image_embedding_1480=image_embedding_1480,
             safe_search=SafeSearch(
                 adult=likelihood_name[safe.adult],
                 spoof=likelihood_name[safe.spoof],
@@ -170,7 +148,6 @@ class AIService:
                 violence=likelihood_name[safe.violence],
                 racy=likelihood_name[safe.racy],
             ),
-            valid=is_valid,
         )
 
         return image_props

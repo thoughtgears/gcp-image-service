@@ -35,8 +35,8 @@ class ImageDocument(BaseModel):
     timeUpdated: datetime
     text_embedding_field: Optional[Vector] = None
     image_embedding_field: Optional[Vector] = None
-    text_embedding_field_1480: Optional[Vector] = None
-    image_embedding_field_1480: Optional[Vector] = None
+    text_embedding_field_1408: Optional[Vector] = None
+    image_embedding_field_1408: Optional[Vector] = None
 
     class Config:
         arbitrary_types_allowed = True
