@@ -13,6 +13,7 @@ load_dotenv()
 project_id = os.getenv("GCP_PROJECT_ID")
 region = os.getenv("GCP_REGION")
 firestore_collection = os.getenv("FIRESTORE_COLLECTION")
+limit = os.getenv("LIMIT", 500)
 
 ai = AIService(project_id, region)
 db = DBService(project_id, firestore_collection)
@@ -48,8 +49,9 @@ def find_image(image_id_query):
 
 
 if __name__ == "__main__":
-    limit = 500
-    docs = db.get_documents(limit=limit, start_at=load_last_document_id())
+    last_doc = load_last_document_id()
+    print(f"Last document ID: {last_doc}")
+    docs = db.get_documents(limit=limit, start_at=last_doc)
     for doc in docs:
         image_id = doc.imageId
 
