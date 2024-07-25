@@ -7,6 +7,5 @@ ui
 .env
 Dockerfile
 Taskfile.yml
-local-rehydrate.py
 local-change-vector.py
 local-get-companies.py

@@ -4,6 +4,11 @@ dotenv:
   - .env
   - ${HOME}/.env
 
+vars:
+  GIT_BRANCH: $(git rev-parse --abbrev-ref HEAD)
+  GIT_SHA: $(git rev-parse --short HEAD)
+  GCP_REGION: europe-west2
+
 tasks:
   default:
     cmd: task --list
@@ -11,3 +16,11 @@ tasks:
   dev:
     desc: Run development server
     cmd: uvicorn app:app --host=127.0.0.1 --port=8080 --reload
+
+  build:job:
+    desc: Build docker image for Cloud run job
+    cmds:
+      - docker build --platform linux/amd64 -t {{ .DOCKER_IMAGE }}:{{ .GIT_SHA }} -f Dockerfile.job .
+      - docker push {{ .DOCKER_IMAGE }}:{{ .GIT_SHA }}
+    vars:
+      DOCKER_IMAGE: europe-west2-docker.pkg.dev/$GCP_PROJECT_ID/jobs/rehydrate
